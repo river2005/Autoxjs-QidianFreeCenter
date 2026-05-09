@@ -1,4 +1,4 @@
-var title = "260501起点自动";
+var title = "260508起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -444,26 +444,17 @@ function video_look(btn) {
             sleep(1000);
             if (text("可从这里回到福利页哦").exists()) click("我知道了", 0);
             if (textContains("播放将消耗流量").exists()) click("继续播放", 0);
-            if (wherePage() == "index") {
-                l_warn("似乎跳首页了，请限制左边有某些词的时候不要点这个按钮");
-                throw new Error("跳首页");
-            }
             if (textContains("验证").exists()) {
                 let c1 = 0;
                 while (textContains("验证").exists()) {
                     c1++;
                     setConPos(c1 % 2);
-                    //toastLog
                     l_log("请手动过一下验证");
                     sleep((1 + c1 % 2) * 1000);
                 }
                 if (c1 > 0) setConPos(0);
                 m = 0;
             }
-            //else if (m > 2 && !!btn.parent()) {
-            //    l_error("似乎没有点到，或没有跳转");
-            //    throw new Error("未跳转");
-            //}
         }
         m++;
         if (m > 2) {
@@ -518,6 +509,7 @@ function video_look(btn) {
         debugDelay = 3;
         while (sec > 0) {
             sleep(1000);
+            if (sec % 5 == 0) click(random(10, 20), random(10, 20));
             sec--;
         }
         l_verbose("应该看完");
@@ -541,12 +533,12 @@ function video_look(btn) {
             }
             launchQidian();
 
-            if (n < try_back_time + 1) {
+            if (n < try_back_time) {
                 // 有些旧版本，或手机没装应该跳的app，可能有用
                 l_verbose("尝试模拟“手势返回”");
                 back();
             } else {
-                let n1 = n - try_back_time - 1;
+                let n1 = n - try_back_time;
                 if (n1 < Object.keys(t_click).length) {
                     let tmp = t_click[Object.keys(t_click)[n1]];
                     l_verbose("尝试点击", tmp.x, tmp.y);
@@ -572,6 +564,7 @@ function video_look(btn) {
                     n = 0;
                 }
             }
+            if (!cmdIsDisplay) showCon();
 
             if (!btn.parent()) {
                 let t1 = new Date();
@@ -593,6 +586,7 @@ function video_look(btn) {
                     debugDelay = 3;
                     while (sec > 0) {
                         sleep(1000);
+                        if (sec % 5 == 0) click(random(10, 20), random(10, 20));
                         sec--;
                     }
                     l_verbose("应该看完");
@@ -606,7 +600,6 @@ function video_look(btn) {
                 if (className("android.widget.TextView").textContains("恭喜").exists()) break;
             }
         } while (!btn.parent());
-        if (!cmdIsDisplay) showCon();
 
         if (!(xc == xr && yc == yt)) {
             yc -= t_click_step;
@@ -1244,7 +1237,6 @@ try {
         }
         if (targetFalse == targetNum) break;
     } while (textButtonExist(targetBtn));
-    if (Object.keys(t_click).length > 0) storage.put(closeCoord_name, JSON.stringify(t_click));
     if (adCount > 0) {
         l_verbose(shortdash);
         l_info("结束看广告");
@@ -1296,14 +1288,14 @@ try {
                                 // com.qd.ui.component.widget.dialog.QDUICommonTipDialog
                                 if (text("加入书架").exists() && text("取消").exists()) {
                                     let c = text("取消").findOne(500);
-                                    l_verbose(c.text());
                                     if (c) {
+                                        l_verbose(c.text());
                                         c.click(); // 不能点
                                         c.parent().click();
                                     }
-                                    //back();
                                 } else {
                                     l_verbose("但无 加入 弹窗");
+                                    back();
                                 }
                                 sleep(2000);
                             }
@@ -1357,6 +1349,8 @@ try {
                 if (res > 1) break;
             } else {
                 l_error("没找到对应的“" + gamebtntext + "”按钮，可能起点改了布局或按钮字符");
+                back();
+                sleep(1000);
             }
             num++;
             sleep(1000);
@@ -1412,6 +1406,7 @@ try {
     l_log.apply(null, reviewResults());
     l_error("脚本异常");
 } finally {
+    if (Object.keys(t_click).length > 0) storage.put(closeCoord_name, JSON.stringify(t_click));
     engines.stopAllAndToast();
     l_exit();
 }
