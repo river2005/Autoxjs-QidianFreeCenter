@@ -1,4 +1,4 @@
-var title = "260508起点自动";
+var title = "260515起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -447,6 +447,14 @@ function video_look(btn) {
             if (textContains("验证").exists()) {
                 let c1 = 0;
                 while (textContains("验证").exists()) {
+                    if (c1 > 60) {
+                        let chap = false;
+                        let res = cappad();
+                        for (let i = 0; i < res.length; i++) {
+                            if (res[i].text.indexOf("验证") > -1) chap = true;
+                        }
+                        if (!chap) break;
+                    }
                     c1++;
                     setConPos(c1 % 2);
                     l_log("请手动过一下验证");
@@ -455,15 +463,19 @@ function video_look(btn) {
                 if (c1 > 0) setConPos(0);
                 m = 0;
             }
+            if (currentActivity() != "com.qq.e.tg.RewardvideoPortraitADActivity") btn.click();
         }
         m++;
         if (m > 2) {
-            if (currentActivity() != "com.qq.e.tg.RewardvideoPortraitADActivity") btn.click();
             let res = cappad();
             for (let i = 0; i < res.length; i++) {
                 if (res[i].text.indexOf("得奖励") > -1 || res[i].text.indexOf("小游戏") > -1) {
                     //log(i, res[i].text);
                     let sec = res[i].text.replace(/[^\d]/g, "") * 1;
+                    if (sec > 200) {
+                        l_verbose(sec, "太大");
+                        break;
+                    }
                     if (res[i].text.indexOf("点击") > -1) {
                         l_log("点：", sec);
                         ad_clicknewpage = sec;
@@ -572,6 +584,10 @@ function video_look(btn) {
                 for (let i = 0; i < res.length; i++) {
                     if (res[i].text.indexOf("秒") > -1) {
                         sec = res[i].text.replace(/[^\d]/g, "") * 1;
+                        if (sec > 200) {
+                            l_verbose(sec, "太大");
+                            sec = 0;
+                        }
                         if (sec > 0) break;
                     }
                 }
@@ -756,6 +772,14 @@ function read_book(min) {
     debugDelay = 30;
     let n = 0;
     do {
+        if (text("跳转").exists() && text("取消").exists()) {
+            let c = text("取消").findOne(500);
+            if (c) {
+                l_verbose(c.text());
+                c.click(); // 不能点
+                c.parent().click();
+            }
+        }
         let a = 1000, b = 0;
         if (second % 60 == 0) {
             l_verbose("倒计时" + (second / 60) + "分钟");
