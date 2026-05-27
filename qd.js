@@ -1,4 +1,4 @@
-var title = "260515起点自动";
+var title = "260527起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -286,7 +286,7 @@ function exchange() {
             let max = 0;
             for (let i = 0; i < btns.length; i++) {
                 let t1 = getDescriptionOnLeft(btns[i]);
-                let n1 = t1.replace(/[^\d]/g, "") * 1;
+                let n1 = t1.replace(/[^\d.]/g, "") * 1;
                 if (n1 > max) {
                     bigIndex = i;
                     max = n1;
@@ -360,7 +360,7 @@ function lottery() {
     } else {
         l_error("没找到链接，无法进入签到日历");
     }
-    if (cb && (cb.text().indexOf("×") < 0 || (cb.text().indexOf("×") > 0 && cb.text().replace(/[^\d]/g, "") * 1 > 0))) {
+    if (cb && (cb.text().indexOf("×") < 0 || (cb.text().indexOf("×") > 0 && cb.text().replace(/[^\d.]/g, "") * 1 > 0))) {
         // 有抽奖机会
         l_verbose(cb.text());
         scrollShowButton(0, cb);
@@ -471,7 +471,7 @@ function video_look(btn) {
             for (let i = 0; i < res.length; i++) {
                 if (res[i].text.indexOf("得奖励") > -1 || res[i].text.indexOf("小游戏") > -1) {
                     //log(i, res[i].text);
-                    let sec = res[i].text.replace(/[^\d]/g, "") * 1;
+                    let sec = res[i].text.replace(/[^\d.]/g, "") * 1;
                     if (sec > 200) {
                         l_verbose(sec, "太大");
                         break;
@@ -582,8 +582,9 @@ function video_look(btn) {
                 let t1 = new Date();
                 let res = cappad();
                 for (let i = 0; i < res.length; i++) {
+                    if (res[i].text.indexOf("秒杀") > -1) continue;
                     if (res[i].text.indexOf("秒") > -1) {
-                        sec = res[i].text.replace(/[^\d]/g, "") * 1;
+                        sec = res[i].text.replace(/[^\d.]/g, "") * 1;
                         if (sec > 200) {
                             l_verbose(sec, "太大");
                             sec = 0;
@@ -677,7 +678,7 @@ function video_look(btn) {
                 if (textContains("有声书").exists()) {
                     video_flag = textContains("有声书").findOne(500).text();
                 }
-                let v1 = video_flag.replace(/[^\d]/g, "") * 1;
+                let v1 = video_flag.replace(/[^\d.]/g, "") * 1;
                 if (v1 != v) {
                     l_verbose(video_flag);
                     if (v1 == 0) {
@@ -1038,7 +1039,7 @@ function addReceived(r) {
     while (r.substring(0, 1) == "+") r = r.substring(1);
     if (r.indexOf("满") > -1 && r.indexOf("-") > -1) {
         let t = r.split("-");
-        t[0] = t[0].replace(/[^\d]/g, "");
+        t[0] = t[0].replace(/[^\d.]/g, "");
         r = t.join("-");
     }
     if (r in ADReceive) ADReceive[r]++;
@@ -1297,7 +1298,7 @@ try {
                     l_log(s);
                     let s1 = s.split("\n");
                     let num = 0;
-                    for (let j = 0; j < s1.length; j++) if (s1[j].indexOf("再读") > -1) num = s1[j].replace(/[^\d]/g, "") * 1;
+                    for (let j = 0; j < s1.length; j++) if (s1[j].indexOf("再读") > -1) num = s1[j].replace(/[^\d.]/g, "") * 1;
                     aa[ii].click();
                     sleep(2000);
                     let b = text(target).find();
@@ -1362,7 +1363,7 @@ try {
             }
             if (b != null) {
                 l_log(playLabel.text());
-                let min = playLabel.text().replace(/[^\d]/g, "") * 1;
+                let min = playLabel.text().replace(/[^\d.]/g, "") * 1;
                 b.click();
                 sleep(5000);
                 let res = game_play(min);
