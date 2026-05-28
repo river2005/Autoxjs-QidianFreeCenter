@@ -1,4 +1,4 @@
-var title = "260527起点自动";
+var title = "260528起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -312,7 +312,7 @@ function exchange() {
                             c1++;
                             setConPos(c1 % 2);
                             //toastLog
-                            l_log("请手动过一下验证");
+                            l_log("请手动过一下");
                             sleep((1 + c1 % 2) * 1000);
                         }
                         if (c1 > 0) setConPos(0);
@@ -447,7 +447,7 @@ function video_look(btn) {
             if (textContains("验证").exists()) {
                 let c1 = 0;
                 while (textContains("验证").exists()) {
-                    if (c1 > 60) {
+                    if (c1 > 20) {
                         let chap = false;
                         let res = cappad();
                         for (let i = 0; i < res.length; i++) {
@@ -457,15 +457,19 @@ function video_look(btn) {
                     }
                     c1++;
                     setConPos(c1 % 2);
-                    l_log("请手动过一下验证");
+                    l_log("请手动过一下");
                     sleep((1 + c1 % 2) * 1000);
                 }
-                if (c1 > 0) setConPos(0);
+                setConPos(0);
                 m = 0;
             }
             if (currentActivity() != "com.qq.e.tg.RewardvideoPortraitADActivity") btn.click();
         }
         m++;
+        if (m > 15) {
+            l_warn("似乎哪里不对");
+            break;
+        }
         if (m > 2) {
             let res = cappad();
             for (let i = 0; i < res.length; i++) {
@@ -507,10 +511,6 @@ function video_look(btn) {
                 break;
             }
             if (ad_raw > -1) break;
-        }
-        if (m > 15) {
-            l_warn("似乎哪里不对");
-            break;
         }
     } while (!(textContains("得奖励").exists() || textContains("跳过").exists()));
 
@@ -1045,10 +1045,9 @@ function addReceived(r) {
     if (r in ADReceive) ADReceive[r]++;
     else ADReceive[r] = 1;
 }
-function clickIknown() {
-    let tmp = className("android.widget.TextView").textContains("恭喜").findOne(500);
+function clickIknown() {//className("android.widget.TextView").
+    let tmp = textContains("恭喜获得").findOne(200);
     if (tmp) {
-        //log(tmp.id(), tmp.text());
         let t1 = tmp.text();
         showReceived(t1);
         let a = "恭喜获得";
@@ -1060,8 +1059,8 @@ function clickIknown() {
             //let t1 = getTextOfView(t.parent().parent(), t);
             t.click();
             //click("知道了", 0);
-            return 1;
         }
+        return 1;
     }
     return 0;
 }
@@ -1400,8 +1399,13 @@ try {
                 l_verbose(getDescriptionOnLeft(btn_now));
                 btn_now.click();
                 bonusNum++;
-                sleep(1500);
-                if (!clickIknown()) {
+                let c1 = 0;
+                for (let ii = 0; ii < 5; ii++) {
+                    sleep(200);
+                    c1 = clickIknown();
+                    if (c1) break;
+                }
+                if (!c1) {
                     btn_now = refreshView(btn[i]);
                     if (btn_now.text() == btnt) {
                         l_error("似乎领取失败");
