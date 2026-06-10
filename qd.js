@@ -1,4 +1,4 @@
-var title = "260528起点自动";
+var title = "260610起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -447,7 +447,7 @@ function video_look(btn) {
             if (textContains("验证").exists()) {
                 let c1 = 0;
                 while (textContains("验证").exists()) {
-                    if (c1 > 20) {
+                    if (c1 > 10) {
                         let chap = false;
                         let res = cappad();
                         for (let i = 0; i < res.length; i++) {
@@ -474,12 +474,7 @@ function video_look(btn) {
             let res = cappad();
             for (let i = 0; i < res.length; i++) {
                 if (res[i].text.indexOf("得奖励") > -1 || res[i].text.indexOf("小游戏") > -1) {
-                    //log(i, res[i].text);
                     let sec = res[i].text.replace(/[^\d.]/g, "") * 1;
-                    if (sec > 200) {
-                        l_verbose(sec, "太大");
-                        break;
-                    }
                     if (res[i].text.indexOf("点击") > -1) {
                         l_log("点：", sec);
                         ad_clicknewpage = sec;
@@ -766,9 +761,16 @@ function read_book(min) {
     let second = min * 60;
     let st = new Date().getTime();
     for (let i = 0; i < 2; i++) {
-        // 确保进正文
+        // 确保进正文 
         swipe(device.width * 3 / 4 + i, device.height / 2 + 105 + i, device.width / 4 + i, device.height / 2 + 100 + i, 500);
         sleep(900);
+        if (text("批量订阅").exists() && text("订阅须知").exists()) {
+            for (let ii = 0; ii < 2; ii++) {
+                swipe(device.width / 4, device.height / 2 + 100, device.width * 3 / 4, device.height / 2 + 105, 500);
+                sleep(900);
+            }
+            break;
+        }
     }
     debugDelay = 30;
     let n = 0;
@@ -1022,7 +1024,7 @@ function getDescriptionOnLeft(b) {
     let c = b.parent().children();
     let r = new Array();
     for (let i = 0; i < c.length; i++) {
-        if (i != j && Math.abs(c[i].bounds().top - t) < 100) {
+        if (i != j && Math.abs(c[i].bounds().top - t) < 70) {
             let t1 = getTextOfView(c[i]);
             if (t1 != "") r.push(t1);
         }
@@ -1045,20 +1047,21 @@ function addReceived(r) {
     if (r in ADReceive) ADReceive[r]++;
     else ADReceive[r] = 1;
 }
-function clickIknown() {//className("android.widget.TextView").
-    let tmp = textContains("恭喜获得").findOne(200);
+function clickIknown() {
+    let tmp = textContains("恭喜获得").findOne(100);
     if (tmp) {
         let t1 = tmp.text();
         showReceived(t1);
         let a = "恭喜获得";
         if (t1.substring(0, a.length) == a) addReceived(t1.substring(a.length));
 
-        sleep(500);
+        sleep(300);
         if (textContains("知道了").exists()) {
-            let t = textContains("知道了").findOne(500);
+            let t = textContains("知道了").findOne(200);
             //let t1 = getTextOfView(t.parent().parent(), t);
             t.click();
             //click("知道了", 0);
+            return 2;
         }
         return 1;
     }
@@ -1258,6 +1261,7 @@ try {
                 if (c == 2) jumpMarket(aa[ii]);
                 break; // 不然会先按下面的，刚刚按过现在又亮起来的会下次循环按
             }
+            launchQidian();
         }
         if (targetFalse == targetNum) break;
     } while (textButtonExist(targetBtn));
@@ -1401,7 +1405,7 @@ try {
                 bonusNum++;
                 let c1 = 0;
                 for (let ii = 0; ii < 5; ii++) {
-                    sleep(200);
+                    sleep(100);
                     c1 = clickIknown();
                     if (c1) break;
                 }
