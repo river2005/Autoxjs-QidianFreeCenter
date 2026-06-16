@@ -1,4 +1,4 @@
-var title = "260610起点自动";
+var title = "260616起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -473,8 +473,8 @@ function video_look(btn) {
         if (m > 2) {
             let res = cappad();
             for (let i = 0; i < res.length; i++) {
-                if (res[i].text.indexOf("得奖励") > -1 || res[i].text.indexOf("小游戏") > -1) {
-                    let sec = res[i].text.replace(/[^\d.]/g, "") * 1;
+                if (res[i].text.indexOf("得奖励") > -1 || res[i].text.indexOf("小游戏") > -1 || res[i].text.indexOf("完成第") > -1) {
+                    let sec = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/)[1] * 1;
                     if (res[i].text.indexOf("点击") > -1) {
                         l_log("点：", sec);
                         ad_clicknewpage = sec;
@@ -579,12 +579,20 @@ function video_look(btn) {
                 for (let i = 0; i < res.length; i++) {
                     if (res[i].text.indexOf("秒杀") > -1) continue;
                     if (res[i].text.indexOf("秒") > -1) {
-                        sec = res[i].text.replace(/[^\d.]/g, "") * 1;
+                        l_verbose(res[i].text);
+                        sec = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/)[1] * 1;
                         if (sec > 200) {
                             l_verbose(sec, "太大");
                             sec = 0;
                         }
                         if (sec > 0) break;
+                    }
+                    if (res[i].text.indexOf("滑动继续") > -1) {
+                        l_verbose("广告", adCount, "结束");
+                        swipe(device.width / 4, device.height / 2 + 100, device.width * 3 / 4, device.height / 2 + 105, 500);
+                        swipe(device.width * 3 / 4, device.height / 2 + 105, device.width / 4, device.height / 2 + 100, 500);
+                        adCount++;
+                        l_verbose("广告", adCount, "开始");
                     }
                 }
                 if (sec > 0) {
@@ -764,7 +772,7 @@ function read_book(min) {
         // 确保进正文 
         swipe(device.width * 3 / 4 + i, device.height / 2 + 105 + i, device.width / 4 + i, device.height / 2 + 100 + i, 500);
         sleep(900);
-        if (text("批量订阅").exists() && text("订阅须知").exists()) {
+        if ((text("批量订阅").exists() && text("订阅须知").exists()) || (text("返回书架").exists() && text("书友圈").exists())) {
             for (let ii = 0; ii < 2; ii++) {
                 swipe(device.width / 4, device.height / 2 + 100, device.width * 3 / 4, device.height / 2 + 105, 500);
                 sleep(900);
@@ -1235,6 +1243,7 @@ try {
     // 开始看广告
     l_log("开始看广告");
     let targetBtn = ["看视频", "去完成"]; // 目标按钮字符
+    let excludeStr = ["加点", "白泽", "玩游戏"]; // 文字如果有这个，不看
     do {
         let targetNum = 0, targetFalse = 0;
         for (let i = 0; i < targetBtn.length; i++) {
@@ -1248,7 +1257,7 @@ try {
                 let c = 0;
                 if (s.indexOf("广告") > -1) c = 1;  // 目标按钮左边介绍文字如果有广告才点
                 if (s.indexOf("市场") > -1) c = 2;
-                if (c == 0) {
+                if (c == 0 || strHasArr(s, excludeStr)) {
                     targetFalse++;
                     continue;
                 }
@@ -1282,6 +1291,54 @@ try {
     sleep(2000);
 
     // 其它脚本里的听书等活动，快一年了还没有，先删
+
+    // 广告·加点
+    if (textContains("广告·加点").exists()) {
+        l_log("广告·加点");
+        let adAdd = 0;
+        targetBtn = ["去完成", "去阅读"]; // 目标按钮字符
+        do {
+            let targetNum = 0, targetFalse = 0;
+            for (let i = 0; i < targetBtn.length; i++) {
+                let target = targetBtn[i];
+                if (!text(target).exists()) continue;
+                let aa = text(target).find();
+                targetNum += aa.length;
+                for (let ii = aa.length - 1; ii > -1; ii--) {
+                    //l_verbose(target);
+                    let s = getDescriptionOnLeft(aa[ii]);
+                    if (s.indexOf("加点") < 0) {
+                        targetFalse++;
+                        continue;
+                    }
+                    adAdd++;
+                    freeCenterScrolled = scrollShowButton(freeCenterScrolled, aa[ii]);
+                    l_verbose(shortdash);
+                    l_log(s);
+                    aa[ii].click();
+                    sleep(1000);
+                    if (target == "去完成") video_look(aa[ii]);
+                    if (target == "去阅读") {
+                        let min = s.replace(/[^\d.]/g, "") * 1;
+                        let book = id("tvBookName").find()[1];
+                        l_log(book.text());
+                        book.parent().click();
+                        read_book(min);
+                        // 重新进入福利中心
+                        enterFreeCenter();
+                    }
+                    break; // 不然会先按下面的，刚刚按过现在又亮起来的会下次循环按
+                }
+                launchQidian();
+            }
+            if (targetFalse == targetNum) break;
+        } while (textButtonExist(targetBtn));
+        if (adAdd > 0) l_info("结束加点");
+        else l_log("无加点");
+        freeCenterScrolled = scrollShowButton(freeCenterScrolled, 0);
+        l_log(longdash);
+        sleep(2000);
+    }
 
     // 当日阅读5分钟
     let target1 = ["去阅读"]; // 目标按钮字符
