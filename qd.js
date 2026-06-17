@@ -1,4 +1,4 @@
-var title = "260616起点自动";
+var title = "260617起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -474,7 +474,9 @@ function video_look(btn) {
             let res = cappad();
             for (let i = 0; i < res.length; i++) {
                 if (res[i].text.indexOf("得奖励") > -1 || res[i].text.indexOf("小游戏") > -1 || res[i].text.indexOf("完成第") > -1) {
-                    let sec = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/)[1] * 1;
+                    let m1 = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/);
+                    if (m1.length < 2) continue;
+                    sec = m1[1] * 1;
                     if (res[i].text.indexOf("点击") > -1) {
                         l_log("点：", sec);
                         ad_clicknewpage = sec;
@@ -580,7 +582,9 @@ function video_look(btn) {
                     if (res[i].text.indexOf("秒杀") > -1) continue;
                     if (res[i].text.indexOf("秒") > -1) {
                         l_verbose(res[i].text);
-                        sec = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/)[1] * 1;
+                        let m1 = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/);
+                        if (m1.length < 2) continue;
+                        sec = m1[1] * 1;
                         if (sec > 200) {
                             l_verbose(sec, "太大");
                             sec = 0;
