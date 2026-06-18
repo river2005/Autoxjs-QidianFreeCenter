@@ -1,4 +1,4 @@
-var title = "260617起点自动";
+var title = "260618起点自动";
 var logFile = false; // 是否将日志保存到文件中
 
 var closeButtonBottom = 200; // 新广告右上角的X的下沿高度，控制台也放这么高
@@ -475,7 +475,7 @@ function video_look(btn) {
             for (let i = 0; i < res.length; i++) {
                 if (res[i].text.indexOf("得奖励") > -1 || res[i].text.indexOf("小游戏") > -1 || res[i].text.indexOf("完成第") > -1) {
                     let m1 = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/);
-                    if (m1.length < 2) continue;
+                    if (!m1) continue;
                     sec = m1[1] * 1;
                     if (res[i].text.indexOf("点击") > -1) {
                         l_log("点：", sec);
@@ -581,9 +581,9 @@ function video_look(btn) {
                 for (let i = 0; i < res.length; i++) {
                     if (res[i].text.indexOf("秒杀") > -1) continue;
                     if (res[i].text.indexOf("秒") > -1) {
-                        l_verbose(res[i].text);
                         let m1 = res[i].text.match(/(\d+(?:\.\d+)?)\s*秒/);
-                        if (m1.length < 2) continue;
+                        if (!m1) continue;
+                        l_verbose(res[i].text);
                         sec = m1[1] * 1;
                         if (sec > 200) {
                             l_verbose(sec, "太大");
@@ -594,6 +594,7 @@ function video_look(btn) {
                     if (res[i].text.indexOf("滑动继续") > -1) {
                         l_verbose("广告", adCount, "结束");
                         swipe(device.width / 4, device.height / 2 + 100, device.width * 3 / 4, device.height / 2 + 105, 500);
+                        l_verbose(shortdash);
                         swipe(device.width * 3 / 4, device.height / 2 + 105, device.width / 4, device.height / 2 + 100, 500);
                         adCount++;
                         l_verbose("广告", adCount, "开始");
@@ -772,18 +773,26 @@ function video_look(btn) {
 function read_book(min) {
     let second = min * 60;
     let st = new Date().getTime();
-    for (let i = 0; i < 2; i++) {
-        // 确保进正文 
-        swipe(device.width * 3 / 4 + i, device.height / 2 + 105 + i, device.width / 4 + i, device.height / 2 + 100 + i, 500);
-        sleep(900);
-        if ((text("批量订阅").exists() && text("订阅须知").exists()) || (text("返回书架").exists() && text("书友圈").exists())) {
-            for (let ii = 0; ii < 2; ii++) {
+    function bookend() {
+        let n1 = false;
+        if (text("返回书架").exists() && text("书友圈").exists()) {
+            n1 = true;
+            back();
+        }
+        if (text("批量订阅").exists() && text("订阅须知").exists()) n1 = true;
+        if (n1) {
+            for (let ii = 0; ii < 3; ii++) {
                 swipe(device.width / 4, device.height / 2 + 100, device.width * 3 / 4, device.height / 2 + 105, 500);
                 sleep(900);
             }
-            break;
         }
+        return n1;
     }
+    // 确保进正文
+    swipe(device.width * 3 / 4, device.height / 2 + 105, device.width / 4, device.height / 2 + 100, 500);
+    sleep(500);
+    if (bookend()) while (bookend()) sleep(500);
+
     debugDelay = 30;
     let n = 0;
     do {
