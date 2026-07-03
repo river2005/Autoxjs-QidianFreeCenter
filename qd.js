@@ -1356,7 +1356,7 @@ try {
                             // 可选：再点一次
                             if (id("tvBookName").exists()) {
                                 book = id("tvBookName").find()[1];
-                                book.parent().click();
+                                book.parent().parent().click();
                                 sleep(2000);
                             }
                         }
