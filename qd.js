@@ -1333,13 +1333,42 @@ try {
                     if (target == "去完成") video_look(aa[ii]);
                     if (target == "去阅读") {
                         let min = s.replace(/[^\d.]/g, "") * 1;
-                        let book = id("tvBookName").find()[1];
-                        l_log(book.text());
+                        let books = id("tvBookName").find();
+    
+                        if (books.length < 2) {
+                            l_error("找不到可阅读的书籍");
+                            continue;
+                        }
+    
+                        let book = books[1];
+                        l_log("准备阅读: " + book.text());
                         book.parent().click();
+    
+                        // 等待进入阅读页面（最多5秒）
+                        let cnt = 0;
+                        while (cnt < 10 && !text("返回书架").exists()) {
+                            sleep(500);
+                            cnt++;
+                        }
+    
+                        if (!text("返回书架").exists()) {
+                            l_warn("5秒后未进入阅读页面，可能网络延迟");
+                            // 可选：再点一次
+                            if (id("tvBookName").exists()) {
+                                book = id("tvBookName").find()[1];
+                                book.parent().click();
+                                sleep(2000);
+                            }
+                        }
+    
                         read_book(min);
-                        // 重新进入福利中心
                         enterFreeCenter();
                     }
+
+
+
+                    
+                   
                     break; // 不然会先按下面的，刚刚按过现在又亮起来的会下次循环按
                 }
                 launchQidian();
