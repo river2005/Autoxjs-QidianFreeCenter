@@ -343,6 +343,7 @@ function lottery() {
     let e = className("android.widget.ListView").findOne(500);
     if (e.parent().clickable()) {
         freeCenterScrolled = scrollShowButton(freeCenterScrolled, e);
+        sleep(1500);
         e.parent().click();
         l_verbose("点进签到日历");
         sleep(2000);
