@@ -1337,10 +1337,51 @@ try {
                     if (target == "去完成") video_look(aa[ii]);
                     if (target == "去阅读") {
                         let min = s.replace(/[^\d.]/g, "") * 1;
-                        sleep(1500);
-						let book = id("tvBookName").find()[1];
-                        l_log(book.text());
-                        book.parent().parent().click();
+                        let books = id("tvBookName").find();
+
+                        if (books.length < 2) {
+                            l_error("找不到可阅读的书籍");
+                            continue;
+                        }
+
+                        let book = books[1];
+                        l_log("准备阅读: " + book.text());
+
+                        // ✅ 尝试多层级点击
+                        let clickSuccess = false;
+
+                        // 方案1：直接点击 book 元素
+                        if (book.clickable()) {
+                            l_verbose("方案1: 直接点击book元素");
+                            book.click();
+                            clickSuccess = true;
+                        }
+                        // 方案2：点击 book.parent()
+                        else if (book.parent() && book.parent().clickable()) {
+                            l_verbose("方案2: 点击book.parent()");
+                            book.parent().click();
+                            clickSuccess = true;
+                        }
+                        // 方案3：点击 book.parent().parent()
+                        else if (book.parent() && book.parent().parent() && book.parent().parent().clickable()) {
+                            l_verbose("方案3: 点击book.parent().parent()");
+                            book.parent().parent().click();
+                            clickSuccess = true;
+                        }
+                        // 方案4：使用 getDescriptionOnLeft 找到对应的可点击元素
+                        else {
+                            l_verbose("方案4: 查找对应的可点击父容器");
+                            let parent = book.parent();
+                            for (let level = 0; level < 5; level++) {
+                                if (parent && parent.clickable()) {
+                                    l_verbose("找到第" + level + "层可点击元素");
+                                    parent.click();
+                                    clickSuccess = true;
+                                    break;
+                                }
+                                parent = parent.parent();
+                            }
+                        }
                         read_book(min);
                         // 重新进入福利中心
                         enterFreeCenter();
