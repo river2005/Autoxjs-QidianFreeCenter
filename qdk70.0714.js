@@ -45,7 +45,7 @@ if (auto.service == null) {
 }
 l_info("无障碍服务已开启");
 //log("开启静音");
-//device.setMusicVolume(0); // 要给autojs权限
+device.setMusicVolume(0); // 要给autojs权限
 if (!requestScreenCapture()) {
     l_error("请求截图权限失败");
     l_exit();
@@ -1259,8 +1259,8 @@ try {
 
     // 开始看广告
     l_log("开始看广告");
-    let targetBtn = ["看视频", "去完成"]; // 目标按钮字符
-    let excludeStr = ["加点", "白泽", "玩游戏"]; // 文字如果有这个，不看
+    let targetBtn = ["看视频", "去完成","激励任务"]; // 目标按钮字符
+    let excludeStr = ["加点", "白泽", "玩游戏","惊喜福利","完成1个"]; // 文字如果有这个，不看
     do {
         let targetNum = 0, targetFalse = 0, processedCount = 0;
         for (let i = 0; i < targetBtn.length; i++) {
