@@ -1,5 +1,5 @@
 var title = "260618起点自动";
-var logFile = false; // 是否将日志保存到文件中
+var logFile = false; // 是否将日志保存到文件中，测试修改
 
 var closeButtonBottom = 400; // 新广告右上角的X的下沿高度，控制台也放这么高
 // 如果在你手机上控制台跟广告的X高度距离太远，请修改这个，因为会影响模拟扫描循环点击X；
