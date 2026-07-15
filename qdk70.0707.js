@@ -773,8 +773,9 @@ function video_look(btn) {
     sleep(1000);
 }
 function read_book(min) {
-    let second = min * 60;
-    let st = new Date().getTime();
+    let totalMs = min * 60 * 1000;  // 总时长（毫秒）
+    let startTime = new Date().getTime();
+    let st = startTime;
     function bookend() {
         let n1 = false;
         if (text("返回书架").exists() && text("书友圈").exists()) {
@@ -797,7 +798,19 @@ function read_book(min) {
 
     debugDelay = 30;
     let n = 0;
-    do {
+    let lastLogSecond = -1;  // 记录上次打印的秒数，避免重复打印
+    while (true) {
+        let elapsed = new Date().getTime() - startTime;
+        let remaining = totalMs - elapsed;
+        
+        // 时间到，退出
+        if (remaining <= 0) {
+            break;
+        }
+        
+        // 剩余秒数（向上取整）
+        let remainingSecond = Math.ceil(remaining / 1000);
+        
         if (text("跳转").exists() && text("取消").exists()) {
             let c = text("取消").findOne(500);
             if (c) {
@@ -806,22 +819,24 @@ function read_book(min) {
                 c.parent().click();
             }
         }
-        let a = 1000, b = 0;
-        if (second % 60 == 0) {
-            l_verbose("倒计时" + (second / 60) + "分钟");
+        
+        // 每分钟打印一次倒计时
+        let currentMinute = Math.floor(remainingSecond / 60);
+        if (lastLogSecond == -1 || currentMinute < Math.floor(lastLogSecond / 60)) {
+            l_verbose("倒计时" + currentMinute + "分钟");
         }
-        if (second % 15 == 0) {
-            b = 400;
-            if (n % 2 == 1) swipe(device.width / 4, device.height / 2 + 100, device.width * 3 / 4, device.height / 2 + 105, b);
-            else swipe(device.width * 3 / 4, device.height / 2 + 105, device.width / 4, device.height / 2 + 100, b);
+        lastLogSecond = remainingSecond;
+        
+        // 每 15 秒做一次滑动
+        if (remainingSecond % 15 == 0 && remainingSecond > 0) {
+            if (n % 2 == 1) swipe(device.width / 4, device.height / 2 + 100, device.width * 3 / 4, device.height / 2 + 105, 400);
+            else swipe(device.width * 3 / 4, device.height / 2 + 105, device.width / 4, device.height / 2 + 100, 400);
             n++;
         }
-        sleep(a - b);
-        second--;
-    } while (second > -2);
+        
+        sleep(1000);
+    }
     l_verbose("时间到");
-	l_verbose("k70再等60秒");
-	sleep(60000);
     readTime += new Date().getTime() - st;
     debugDelay = 1;
     sleep(500);
@@ -1262,7 +1277,7 @@ try {
     let targetBtn = ["看视频", "去完成"]; // 目标按钮字符
     let excludeStr = ["加点", "白泽", "玩游戏"]; // 文字如果有这个，不看
     do {
-        let targetNum = 0, targetFalse = 0;
+        let targetNum = 0, targetFalse = 0, processedCount = 0;
         for (let i = 0; i < targetBtn.length; i++) {
             let target = targetBtn[i];
             if (!text(target).exists()) continue;
@@ -1285,11 +1300,13 @@ try {
                 sleep(1000);
                 if (c == 1) video_look(aa[ii]);
                 if (c == 2) jumpMarket(aa[ii]);
+                processedCount++;
                 break; // 不然会先按下面的，刚刚按过现在又亮起来的会下次循环按
             }
             launchQidian();
+            sleep(500); // 给页面加载时间
         }
-        if (targetFalse == targetNum) break;
+        if (processedCount == 0 || targetFalse == targetNum) break;
     } while (textButtonExist(targetBtn));
     if (adCount > 0) {
         l_verbose(shortdash);
