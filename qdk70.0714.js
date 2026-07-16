@@ -1,5 +1,5 @@
 var title = "260618起点自动";
-var logFile = false; // 是否将日志保存到文件中，测试修改
+var logFile = true; // 是否将日志保存到文件中，测试修改
 
 var closeButtonBottom = 400; // 新广告右上角的X的下沿高度，控制台也放这么高
 // 如果在你手机上控制台跟广告的X高度距离太远，请修改这个，因为会影响模拟扫描循环点击X；
@@ -1057,6 +1057,46 @@ function getDescriptionOnLeft(b) {
     if (r.length > 0) return r.join("\n");
     return "";
 }
+function doIncentiveAdTask() {
+    // 单独刷“激励任务”广告，避免被主流程通用倒序循环+滚动偏移漏掉。
+    // 用结构锚点定位：从“激励任务”标题的同级兄弟里，挑离标题最近的可点按钮。
+    if (!text("激励任务").exists()) return 0;
+    l_log("激励任务");
+    let count = 0, guard = 0;
+    while (guard < 8) {
+        guard++;
+        launchQidian();
+        if (!text("激励任务").exists()) break; // 入口消失，视为已完成
+        let title = text("激励任务").findOne(500);
+        if (!title) break;
+        let tTop = title.bounds().top;
+        let cs = title.parent().children();
+        let btn = null, best = 99999;
+        for (let i = 0; i < cs.length; i++) {
+            // 接近度窗口<200px：隔离掉同父的“完成3个”卡(按钮相距约760px)
+            if (cs[i].clickable() && Math.abs(cs[i].bounds().top - tTop) < 200) {
+                let d = Math.abs(cs[i].bounds().top - tTop);
+                if (d < best) { best = d; btn = cs[i]; }
+            }
+        }
+        if (!btn) break; // 无可点按钮，无广告可看
+        let btxt = getTextOfView(btn);
+        if (btxt.indexOf("已") > -1) break; // 已完成/已领取
+        freeCenterScrolled = scrollShowButton(freeCenterScrolled, btn);
+        btn = refreshView(btn); // 滚动后刷新引用
+        l_verbose(shortdash);
+        btn.click();
+        sleep(1000);
+        let before = adCount;
+        video_look(btn); // 靠 btn.parent() 判定广告看完回福利页
+        if (adCount > before) count++;
+        else break; // 没看成广告，防空转
+        launchQidian();
+        sleep(500);
+    }
+    l_info("激励任务看了", count, "个广告");
+    return count;
+}
 function showReceived(r) {
     if (r.indexOf("章节卡") > -1 || r.indexOf("点币") > -1 || r.substring(r.length - 1) == "点") l_info(r);
     else l_log(r);
@@ -1259,6 +1299,7 @@ try {
 
     // 开始看广告
     l_log("开始看广告");
+    doIncentiveAdTask();   // 先单独刷激励任务，避免其被通用倒序循环+滚动偏移漏掉
     let targetBtn = ["看视频", "去完成","激励任务"]; // 目标按钮字符
     let excludeStr = ["加点", "白泽", "玩游戏","惊喜福利","完成1个"]; // 文字如果有这个，不看
     do {
